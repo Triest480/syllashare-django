@@ -76,6 +76,15 @@ WSGI_APPLICATION = 'syllashare.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'SyllaShare',
+        'USER': 'root',
+        'PASSWORD': 'ReactoTryst!',
+        'HOST': 'syllashare.cqmwhzh9wua8.us-west-2.rds.amazonaws.com',
+        'PORT': '3306',
+    },
+
+    'local': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
