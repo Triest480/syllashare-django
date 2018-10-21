@@ -16,12 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from syllatokens.views import verify_token
+from django.urls import path, re_path
+from django.views.generic import TemplateView
 
 from default_views.views import homepage
 urlpatterns = [
-
     path(r'', homepage),
     path(r'admin/', admin.site.urls),
-    path(r'api/verifytoken', verify_token)
-
+    path(r'api/verifytoken', verify_token),
+    re_path('.*', TemplateView.as_view(template_name='index.html'))
 ]
