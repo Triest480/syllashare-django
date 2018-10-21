@@ -6,8 +6,7 @@ from syllatokens.models import SyllaShareToken
 
 def verify_token(request):
     try:
-        # user_token = request.META['HTTP_AUTHORIZATION']
-        user_token = 'testtoken2'
+        user_token = request.META['HTTP_AUTHORIZATION']
         print('User Syllashare Token:', user_token)
         entries = SyllaShareToken.objects.filter(syllashare_token=user_token)
         print('Entries:', entries)
