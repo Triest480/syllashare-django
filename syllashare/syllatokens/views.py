@@ -2,8 +2,9 @@ import time
 
 from django.http import HttpResponse
 from syllatokens.models import SyllaShareToken
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def verify_token(request):
     try:
         user_token = request.META['HTTP_AUTHORIZATION']
