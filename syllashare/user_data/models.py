@@ -26,14 +26,15 @@ class SyllabusEvent(models.Model):
     # TODO: Implement Time. (Right now can only handle day, month, year)
 
 
-# | ID | FIRST NAME | LAST NAME | EMAIL | SCHOOL |
+# | ID | FIRST NAME | LAST NAME | COGNITO USERNAME | EMAIL | SCHOOL |
 class User(models.Model):
-    first_name = models.CharField(max_length=128)
-    last_name = models.CharField(max_length=128)
+    first_name = models.CharField(max_length=128, null=True)
+    last_name = models.CharField(max_length=128, null=True)
+    username = models.CharField(max_length=128)
     email = models.CharField(max_length=128)
 
     # if school is somehow delete, don't delete user
-    school = models.ForeignKey(School, blank=True, on_delete=models.SET_DEFAULT)
+    school = models.ForeignKey(School, blank=True, null=True, on_delete=models.SET_NULL)
 
     # implicit Many-to-Many Table Created
     syllabi = models.ManyToManyField(SyllabusEvent)

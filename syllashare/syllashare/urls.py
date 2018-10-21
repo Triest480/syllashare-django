@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from syllatokens import views as syllatoken_view
+from syllatokens.views import verify_token
 
+from default_views.views import homepage
 urlpatterns = [
 
-    path(r'', syllatoken_view.homepage),
+    path(r'', homepage),
     path(r'admin/', admin.site.urls),
-    path(r'add_user/', syllatoken_view.test),
+    path(r'api/verifytoken', verify_token)
+
 ]
