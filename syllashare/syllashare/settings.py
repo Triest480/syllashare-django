@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hello'
 ]
 
 MIDDLEWARE = [
@@ -73,23 +72,28 @@ WSGI_APPLICATION = 'syllashare.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'SyllaShare',
-        'USER': 'root',
-        'PASSWORD': 'ReactoTryst!',
-        'HOST': 'syllashare.cqmwhzh9wua8.us-west-2.rds.amazonaws.com',
-        'PORT': '3306',
-    },
-
-    'local': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if not DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'SyllaShare',
+            'USER': 'root',
+            'PASSWORD': 'ReactoTryst!',
+            'HOST': 'syllashare.cqmwhzh9wua8.us-west-2.rds.amazonaws.com',
+            'PORT': '3306',
+        },
     }
-}
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'testdb',
+            'USER': 'root',
+            'PASSWORD': 'password',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        },
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
