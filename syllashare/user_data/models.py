@@ -28,6 +28,7 @@ class SyllabusEvent(models.Model):
 
 # | ID | FIRST NAME | LAST NAME | COGNITO USERNAME | EMAIL | SCHOOL |
 class User(models.Model):
+    id = models.CharField(max_length=100, primary_key=True)
     first_name = models.CharField(max_length=128, null=True)
     last_name = models.CharField(max_length=128, null=True)
     username = models.CharField(max_length=128)
