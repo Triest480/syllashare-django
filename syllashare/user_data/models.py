@@ -31,7 +31,7 @@ class User(models.Model):
     first_name = models.CharField(max_length=128, null=True)
     last_name = models.CharField(max_length=128, null=True)
     username = models.CharField(max_length=128)
-    email = models.CharField(max_length=128)
+    email = models.CharField(max_length=128, null=True)
 
     # if school is somehow delete, don't delete user
     school = models.ForeignKey(School, blank=True, null=True, on_delete=models.SET_NULL)
