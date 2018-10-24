@@ -32,6 +32,7 @@ SECRET_KEY = '$gn$60dz&k@c7-zww&1o@ftb6b9zujgnmp!y&yzc)-qqg7&nb4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+SECURE_SSL_REDIRECT = True
 
 ALLOWED_HOSTS = [ "*" ]
 
@@ -47,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'sslserver'
 ]
 
 CORS_ORIGIN_WHITELIST = (
