@@ -6,11 +6,13 @@ class SchoolForm(forms.ModelForm):
     name = forms.CharField(max_length=128, help_text='Enter a School')
     city = forms.CharField(max_length=128, help_text='Enter a City')
     state = forms.CharField(max_length=128, help_text='Enter a State')
+    img_key = forms.CharField(max_length=200, help_text='Enter a State')
 
     # An inline class to provide additional information on the form.
     class Meta:
         # Provide an association between the ModelForm and a model
         model = School
+        fields = '__all__'
 
 
 class UserForm(forms.ModelForm):

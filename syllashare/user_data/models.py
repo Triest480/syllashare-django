@@ -9,6 +9,7 @@ class School(models.Model):
     name = models.CharField(max_length=128)
     city = models.CharField(max_length=128)
     state = models.CharField(max_length=16)
+    pic_key = models.CharField(max_length=200)
 
 
 # | ID | EVENT TYPE |
@@ -31,8 +32,9 @@ class User(models.Model):
     id = models.CharField(max_length=100, primary_key=True)
     first_name = models.CharField(max_length=128, null=True)
     last_name = models.CharField(max_length=128, null=True)
-    username = models.CharField(max_length=128)
+    username = models.CharField(max_length=128, unique=True)
     email = models.CharField(max_length=128, null=True)
+    pic_key = models.CharField(max_length=200, null=True)
 
     # if school is somehow delete, don't delete user
     school = models.ForeignKey(School, blank=True, null=True, on_delete=models.SET_NULL)
