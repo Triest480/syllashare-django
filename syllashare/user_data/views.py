@@ -21,3 +21,5 @@ def get_name(request):
         form = NameForm()
 
     return render(request, 'name.html', {'form': form})
+
+

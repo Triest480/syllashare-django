@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'user_data',
+    'query',
     'syllatokens',
     'django.contrib.admin',
     'django.contrib.auth',
