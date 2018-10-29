@@ -10,6 +10,8 @@ def test403(request):
         return HttpResponse('Nothing Here', status=403)
 
 
-def homepage(request):
+def hello_world(request):
+    print('Hello World!')
+    print('')
     if request.method == 'GET':
-        return HttpResponse('// TODO: MAKE HOMEPAGE ')
+        return HttpResponse('HELLO WORLD')

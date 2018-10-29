@@ -10,7 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
+import environ
 import os
+
+env = environ.Env()
+base = environ.Path(__file__) - 2  # two folders back (/a/b/ - 2 = /)
+environ.Env.read_env(env_file=base('sylla.env'))  # reading .env file
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,9 +31,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '$gn$60dz&k@c7-zww&1o@ftb6b9zujgnmp!y&yzc)-qqg7&nb4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+SECURE_SSL_REDIRECT = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [ "*" ]
 
 
 # Application definition
@@ -39,8 +48,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'sslserver'
 ]
 
+CORS_ORIGIN_WHITELIST = (
+        'localhost:3000',
+        '127.0.0.1:3000'
+    )
+CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -75,16 +91,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'syllashare.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb',
-        'USER': 'root',
-        'PASSWORD': 'password',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-    },
-}
+
+# Database
+# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+if not DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'SyllaShare',
+            'USER': 'root',
+            'PASSWORD': 'ReactoTryst!',
+            'HOST': 'syllashare.cqmwhzh9wua8.us-west-2.rds.amazonaws.com',
+            'PORT': '3306',
+        },
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'testdb',
+            'USER': 'root',
+            'PASSWORD': 'password',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        },
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

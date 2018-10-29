@@ -2,13 +2,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from user_data.models import User, School
-from syllatokens.models import ServiceTokens
+from syllatokens.models import ServiceToken
 from syllatokens.utils import verify_token
 from user_data.utils import has_profanity
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+
 
 @csrf_exempt
 def modify_user(request):
@@ -52,7 +53,8 @@ def modify_user(request):
         response.status_code = 400
         return response
     return HttpResponse(status=200)
-    
+
+
 @csrf_exempt
 def get_user(request):
     user = verify_token(request)
@@ -66,7 +68,7 @@ def get_user(request):
             response.status_code = 404
             return response
         user = users[0]
-    serviceTokens = ServiceTokens.objects.filter(user=user)
+    serviceTokens = ServiceToken.objects.filter(user=user)
     providers = []
     for serviceToken in serviceTokens:
         providers.append(serviceToken.provider)
@@ -77,8 +79,9 @@ def get_user(request):
             "imgKey": user.school.pic_key
         }
     return JsonResponse({"username": user.username, "firstName": user.first_name, "lastName": user.last_name, "picKey": user.pic_key, "school": schoolDict, "providers": providers})
- 
-@csrf_exempt  
+
+
+@csrf_exempt
 def get_schools(request):
     schools = School.objects.all()
     result = []
