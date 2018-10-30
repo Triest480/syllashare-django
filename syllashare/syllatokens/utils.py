@@ -1,6 +1,7 @@
 import time
 from syllatokens.models import SyllaShareToken
 
+
 def verify_token(request):
     try:
         user_token = request.META['HTTP_AUTHORIZATION']

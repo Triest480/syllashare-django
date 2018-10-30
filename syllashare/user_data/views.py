@@ -14,7 +14,7 @@ import json
 @csrf_exempt
 def modify_user(request):
     user = verify_token(request)
-    if (user is None):
+    if not user:
         return HttpResponse(status=403)
     body_in = json.loads(request.body.decode("utf-8"))
     
@@ -58,12 +58,12 @@ def modify_user(request):
 @csrf_exempt
 def get_user(request):
     user = verify_token(request)
-    if (user is None):
+    if not user:
         return HttpResponse(status=403)
     userID = request.GET.get('id', '')
-    if (len(userID) > 0):
+    if userID:
         users = User.objects.filter(id=userID)
-        if (len(users) != 1):
+        if len(users) != 1:
             response = HttpResponse(json.dumps({"msg": "User Not Found"}), content_type='application/json')
             response.status_code = 404
             return response
@@ -73,7 +73,7 @@ def get_user(request):
     for serviceToken in serviceTokens:
         providers.append(serviceToken.provider)
     schoolDict = None
-    if (user.school is not None):
+    if user.school:
         schoolDict = {
             "name": user.school.name,
             "imgKey": user.school.pic_key
@@ -88,3 +88,13 @@ def get_schools(request):
     for school in schools:
         result.append({"name": school.name, "picKey": school.pic_key})
     return JsonResponse(result, safe=False)
+
+
+@csrf_exempt
+def get_class_schedule(request):
+    class_id = request.GET.get('classID', '')
+    print('Class ID:', class_id)
+    if class_id:
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=404)
