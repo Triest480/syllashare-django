@@ -44,10 +44,9 @@ class Class(models.Model):
     year = models.IntegerField(null=True)
 
 
-# | ID | SCHOOL | CLASS | EVENT NAME | EVENT TYPE |
+# | ID | CLASS | EVENT NAME | EVENT TYPE | DATE |
 class SyllabusEvent(models.Model):
-    school = models.ForeignKey(School, on_delete=models.CASCADE)  # if school is delete, do delete relevant entries
-    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE)
+    class_from = models.ForeignKey(Class, on_delete=models.CASCADE)
     entry_name = models.CharField(max_length=256)
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE)  # if event type is deleted kill corr. entries
     date = models.DateField()
@@ -62,9 +61,8 @@ class User(models.Model):
     username = models.CharField(max_length=128, unique=True)
     email = models.CharField(max_length=128, null=True)
     pic_key = models.CharField(max_length=200, null=True)
-
-    # if school is somehow delete, don't delete user
+    # if school is somehow deleted, don't delete user
     school = models.ForeignKey(School, blank=True, null=True, on_delete=models.SET_NULL)
 
     # implicit Many-to-Many Table Created
-    syllabi = models.ManyToManyField(SyllabusEvent)
+    classes = models.ManyToManyField(Class)
