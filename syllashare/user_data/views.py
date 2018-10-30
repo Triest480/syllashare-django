@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from user_data.models import User, School
+from user_data.models import User, School, Class
 from syllatokens.models import ServiceToken
 from syllatokens.utils import verify_token
 from user_data.utils import has_profanity
@@ -95,6 +95,14 @@ def get_class_schedule(request):
     class_id = request.GET.get('classID', '')
     print('Class ID:', class_id)
     if class_id:
+        try:
+            class_id_num = int(class_id)
+            if Class.objects.filter(pk=class_id_num).exists():
+                class_obj = Class.objects.get(pk=class_id_num)
+                teacher = class_obj.teacher
+
+        except ValueError:
+            return HttpResponse(status=403)
         return HttpResponse(status=200)
     else:
         return HttpResponse(status=404)

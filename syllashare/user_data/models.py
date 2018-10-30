@@ -39,7 +39,7 @@ class Class(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     class_number = models.CharField(max_length=256)
     school = models.ForeignKey(School, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
     term = models.ForeignKey(Term, null=True, on_delete=models.CASCADE)
     year = models.IntegerField(null=True)
 
