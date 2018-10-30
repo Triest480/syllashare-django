@@ -1,7 +1,7 @@
 from django.db import models
 
 
-# | ID | SCHOOL NAME | CITY | STATE |
+# | PK | SCHOOL NAME | CITY | STATE |
 class School(models.Model):
     name = models.CharField(max_length=128)
     city = models.CharField(max_length=128)
@@ -9,22 +9,22 @@ class School(models.Model):
     pic_key = models.CharField(max_length=200)
 
 
-# | ID | DEPARTMENT_NAME |
+# | PK | DEPARTMENT_NAME |
 class Department(models.Model):
     department_name = models.CharField(max_length=256)
 
 
-# | ID | TERM |
+# | PK | TERM |
 class Term(models.Model):
     term = models.CharField(max_length=8)  # FALL, WINTER, SPRING, SUMMER
 
 
-# | ID | EVENT TYPE |
+# | PK | EVENT TYPE |
 class EventType(models.Model):
     event_type = models.CharField(max_length=32)  # midterm, homework, final, event, etc
 
 
-# | ID | FIRST NAME | LAST NAME | DEPARTMENT | SCHOOL | RATING | WEBSITE |
+# | PK | FIRST NAME | LAST NAME | DEPARTMENT | SCHOOL | RATING | WEBSITE |
 class Teacher(models.Model):
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
@@ -34,7 +34,7 @@ class Teacher(models.Model):
     website = models.URLField(null=True)
 
 
-# | ID | CLASS_NAME | SCHOOL | TEACHER | TERM | YEAR | SYLLABUS_EVENTS |
+# | PK | CLASS_NAME | SCHOOL | TEACHER | TERM | YEAR | SYLLABUS_EVENTS |
 class Class(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     class_number = models.CharField(max_length=256)
@@ -44,13 +44,9 @@ class Class(models.Model):
     year = models.IntegerField(null=True)
 
 
-# | ID | CLASS | EVENT NAME | EVENT TYPE | DATE |
-class SyllabusEvent(models.Model):
-    class_from = models.ForeignKey(Class, on_delete=models.CASCADE)
-    entry_name = models.CharField(max_length=256)
-    event_type = models.ForeignKey(EventType, on_delete=models.CASCADE)  # if event type is deleted kill corr. entries
-    date = models.DateField()
-    # TODO: Implement Time. (Right now can only handle day, month, year)
+# | PK | GROUP_NAME |
+class Group(models.Model):
+    group_name = models.CharField(max_length=256)
 
 
 # | ID | FIRST NAME | LAST NAME | COGNITO USERNAME | EMAIL | SCHOOL |
@@ -66,3 +62,14 @@ class User(models.Model):
 
     # implicit Many-to-Many Table Created
     classes = models.ManyToManyField(Class)
+    groups = models.ManyToManyField(Group)
+
+
+# | PK | CLASS | EVENT NAME | EVENT TYPE | DATE |
+class SyllabusEvent(models.Model):
+    from_class = models.ForeignKey(Class, on_delete=models.CASCADE, null=True)
+    from_group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    entry_name = models.CharField(max_length=256)
+    event_type = models.ForeignKey(EventType, on_delete=models.CASCADE)  # if event type is deleted kill corr. entries
+    date = models.DateTimeField()
