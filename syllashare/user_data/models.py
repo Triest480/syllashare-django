@@ -37,7 +37,8 @@ class Teacher(models.Model):
 # | PK | CLASS_NAME | SCHOOL | TEACHER | TERM | YEAR | SYLLABUS_EVENTS |
 class Class(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    class_number = models.CharField(max_length=256)
+    class_description = models.CharField(max_length=256, default='')
+    class_number = models.CharField(max_length=64)
     school = models.ForeignKey(School, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
     term = models.ForeignKey(Term, null=True, on_delete=models.CASCADE)
@@ -70,6 +71,6 @@ class SyllabusEvent(models.Model):
     from_class = models.ForeignKey(Class, on_delete=models.CASCADE, null=True)
     from_group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    entry_name = models.CharField(max_length=256)
+    event_name = models.CharField(max_length=256)
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE)  # if event type is deleted kill corr. entries
     date = models.DateTimeField()

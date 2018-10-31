@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path, include
 from django.views.generic import TemplateView
+from user_data.views import sup
 
 urlpatterns = [
+    path(r'', sup),
     path(r'admin/', admin.site.urls),
     path(r'api/', include('api.urls')),
     path(r'.well-known/pki-validation/873AA6D2DC9DCEC192C6E5458A29C688.txt',

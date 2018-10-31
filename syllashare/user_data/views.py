@@ -9,6 +9,13 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+import traceback
+import itertools
+
+
+@csrf_exempt
+def sup(request):
+    return HttpResponse('Sup')
 
 
 @csrf_exempt
@@ -98,27 +105,65 @@ def get_schools(request):
         result.append({'name': school.name, 'picKey': school.pic_key})
     return JsonResponse(result, safe=False)
 
+@csrf_exempt
+def search_classes(request):
+    query_str = request.GET.get('query', '')
+    if query_str.startswith('"') and query_str.endswith('"'):
+        query_str = query_str[1:-1]
+    class_number_results = Class.objects.filter(class_number__contains=query_str)
+    class_description_results = Class.objects.filter(class_description__contains=query_str)
+    classes = list(itertools.chain(class_description_results, class_number_results))
+
+    class_json_list = []
+    for class_obj in classes:
+        class_json = {
+            'name': class_obj.class_description,
+            'classNumber': class_obj.class_number,
+            'subject': class_obj.department.department_name
+        }
+        class_json_list.append(class_json)
+    return JsonResponse(class_json_list, safe=False)
+
 
 @csrf_exempt
 def get_class_schedule(request):
     class_id = request.GET.get('classID', '')
-    print('Class ID:', class_id)
+    if class_id.startswith('"') and class_id.endswith('"'):
+        class_id = class_id[1:-1]  # strip off first " and last "
     if class_id:
         try:
             class_id_num = int(class_id)
             if Class.objects.filter(pk=class_id_num).exists():
                 class_obj = Class.objects.get(pk=class_id_num)
                 teacher = class_obj.teacher
+                teacher_json = {}
                 if teacher:
                     # pack teacher info into json
-                    pass
-                event_list = SyllabusEvent.objects.filter(from_class=class_obj)
-                for events in event_list:
-                    # pack into json
-                    pass
-
+                    teacher_json = {
+                        'name': '{} {}'.format(teacher.first_name, teacher.last_name),
+                        'rating': teacher.rating,
+                        'department': teacher.department.department_name,
+                        'school': teacher.school.name,
+                    }
+                events = SyllabusEvent.objects.filter(from_class=class_obj)
+                event_json_list = []
+                for event in events:
+                    event_json = {
+                        'id': event.pk,
+                        'name': event.event_name,
+                        'eventType': event.event_type.event_type,
+                        'date': event.date,
+                    }
+                    event_json_list.append(event_json)
+                return JsonResponse(
+                    {
+                        'teacher': teacher_json,
+                        'events': event_json_list
+                    })
+            else:
+                return JsonResponse({}, status=404)
         except ValueError:
-            return HttpResponse(status=403)
-        return HttpResponse(status=200)
+            traceback.print_exc()
+            return JsonResponse({}, status=403)
     else:
-        return HttpResponse(status=404)
+        return JsonResponse({}, status=404)
