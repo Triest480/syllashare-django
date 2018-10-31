@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'syllashare.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb2',
+        'NAME': 'testdb',
         'USER': 'root',
         'PASSWORD': 'password',
         'HOST': '127.0.0.1',
