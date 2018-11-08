@@ -172,12 +172,14 @@ def get_class_schedule(request):
 
 @csrf_exempt
 def search_users(request):
+    print("Running searchUsers")
     queryid = str(request.GET.get('query'))
     queryid = queryid.replace('"', '')
     users = []
     p = User.objects.all()
-
+    
     for i in p:
+        print("Loop in searchUsers")
         if queryid.lower() in str(i.username):
             users.append({
                 'id': i.id,
@@ -185,10 +187,7 @@ def search_users(request):
                 'lastname': i.last_name,
                 'username': i.username,
                 'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
+                'pickey': i.pic_key
             })
         elif queryid.lower() in str(i.first_name):
           users.append({
@@ -197,10 +196,7 @@ def search_users(request):
                 'lastname': i.last_name,
                 'username': i.username,
                 'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
+                'pickey': i.pic_key
             })
         elif queryid.lower() in str(i.last_name):
             users.append({
@@ -209,14 +205,13 @@ def search_users(request):
                 'lastname': i.last_name,
                 'username': i.username,
                 'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
+                'pickey': i.pic_key
             })
+    print("SearchUsers responding")
     if not users:
         return HttpResponse(status=404)
     else:
+        #Doesn't make sense to sort
         return JsonResponse(sorted(users,
                                    key=lambda x: difflib.SequenceMatcher(None,
                                                                          x['username'],
