@@ -6,7 +6,7 @@ from django.db import models
 
 # | ID | SCHOOL NAME | CITY | STATE |
 class School(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, primary_key=True)
     city = models.CharField(max_length=128)
     state = models.CharField(max_length=16)
     pic_key = models.CharField(max_length=200)

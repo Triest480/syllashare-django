@@ -39,7 +39,7 @@ def modify_user(request):
         user.last_name = body_in["lastName"]
     
     if "school" in body_in:
-        schools = School.objects.filter(name=body_in["school"])
+        schools = School.objects.filter(name=body_in["school"]["name"])
         if len(schools) != 1:
             response = HttpResponse(json.dumps({"msg": "School Not Found"}), content_type='application/json')
             response.status_code = 404
@@ -74,7 +74,7 @@ def get_user(request):
     if (user.school is not None):
         schoolDict = {
             "name": user.school.name,
-            "imgKey": user.school.pic_key
+            "picKey": user.school.pic_key
         }
     return JsonResponse({"username": user.username, "firstName": user.first_name, "lastName": user.last_name, "picKey": user.pic_key, "school": schoolDict, "providers": providers})
  
