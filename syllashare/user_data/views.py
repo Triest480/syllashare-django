@@ -47,8 +47,8 @@ def modify_user(request):
             return response
         user.last_name = body_in['lastName']
     
-    if 'school' in body_in:
-        schools = School.objects.filter(name=body_in['school'])
+    if "school" in body_in:
+        schools = School.objects.filter(name=body_in["school"]["name"])
         if len(schools) != 1:
             response = HttpResponse(json.dumps({'msg': 'School Not Found'}), content_type='application/json')
             response.status_code = 404
@@ -84,7 +84,7 @@ def get_user(request):
     if user.school:
         school_dict = {
             'name': user.school.name,
-            'imgKey': user.school.pic_key
+            'picKey': user.school.pic_key
         }
     return JsonResponse(
         {

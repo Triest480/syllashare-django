@@ -37,8 +37,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='School',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128)),
+                ('name', models.CharField(max_length=128, primary_key=True, serialize=False)),
                 ('city', models.CharField(max_length=128)),
                 ('state', models.CharField(max_length=16)),
                 ('pic_key', models.CharField(max_length=200)),
