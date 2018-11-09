@@ -172,53 +172,37 @@ def get_class_schedule(request):
 
 @csrf_exempt
 def search_users(request):
-    queryid = str(request.GET.get('query'))
-    queryid = queryid.replace('"', '')
-    users = []
-    p = User.objects.all()
+    query_str = request.GET.get('query', '')
+    if query_str.startswith('"') and query_str.endswith('"'):
+        query_str = query_str[1:-1]
+    query_str = query_str.lower()
+    print('Query String:', query_str)
 
-    for i in p:
-        if queryid.lower() in str(i.username):
-            users.append({
-                'id': i.id,
-                'firstname': i.first_name,
-                'lastname': i.last_name,
-                'username': i.username,
-                'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
+    user_list = []
+    for user in User.objects.all():
+        if query_str in user.username:
+            user_list.append({
+                'id': user.id,
+                'firstname': user.first_name,
+                'lastname': user.last_name,
+                'username': user.username,
+                'email': user.email,
+                'pickey': user.pic_key,
             })
-        elif queryid.lower() in str(i.first_name):
-          users.append({
-                'id': i.id,
-                'firstname': i.first_name,
-                'lastname': i.last_name,
-                'username': i.username,
-                'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
-            })
-        elif queryid.lower() in str(i.last_name):
-            users.append({
-                'id': i.id,
-                'firstname': i.first_name,
-                'lastname': i.last_name,
-                'username': i.username,
-                'email': i.email,
-                'pickey': i.pic_key,
-                'school': i.school,
-                'classes': i.classes,
-                'groups': i.groups
-            })
-    if not users:
-        return HttpResponse(status=404)
+    if len(user_list) < 20:
+        for user in User.objects.all():
+            if user.first_name and query_str in user.first_name or user.last_name and query_str in user.last_name:
+                if user not in user_list:
+                    user_list.append({
+                        'id': user.id,
+                        'firstname': user.first_name,
+                        'lastname': user.last_name,
+                        'username': user.username,
+                        'email': user.email,
+                        'picKey': user.pic_key,
+                    })
+    if len(user_list) > 20:
+        return JsonResponse(user_list[:20], safe=False)
     else:
-        return JsonResponse(sorted(users,
-                                   key=lambda x: difflib.SequenceMatcher(None,
-                                                                         x['username'],
-                                                                         queryid).ratio()),
-                            safe=False)
+        return JsonResponse(user_list, safe=False)
+
