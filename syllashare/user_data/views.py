@@ -205,4 +205,3 @@ def search_users(request):
         return JsonResponse(user_list[:20], safe=False)
     else:
         return JsonResponse(user_list, safe=False)
-
