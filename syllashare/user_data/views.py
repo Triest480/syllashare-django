@@ -176,19 +176,23 @@ def search_users(request):
     if query_str.startswith('"') and query_str.endswith('"'):
         query_str = query_str[1:-1]
     query_str = query_str.lower()
-    print('Query String:', query_str)
+    if len(query_str) < 3:
+        return HttpResponse(status=400)
 
     user_list = []
     for user in User.objects.all():
-        if query_str in user.username:
-            user_list.append({
-                'id': user.id,
-                'firstname': user.first_name,
-                'lastname': user.last_name,
-                'username': user.username,
-                'email': user.email,
-                'pickey': user.pic_key,
-            })
+        if len(user_list) > 20:
+            break
+        else:
+            if query_str in user.username:
+                user_list.append({
+                    'id': user.id,
+                    'firstname': user.first_name,
+                    'lastname': user.last_name,
+                    'username': user.username,
+                    'email': user.email,
+                    'pickey': user.pic_key,
+                })
     if len(user_list) < 20:
         for user in User.objects.all():
             if user.first_name and query_str in user.first_name or user.last_name and query_str in user.last_name:
