@@ -6,6 +6,7 @@ from syllatokens.models import ServiceToken
 from syllatokens.utils import verify_token
 from user_data.utils import has_profanity
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
@@ -99,12 +100,61 @@ def get_user(request):
 
 
 @csrf_exempt
+def follow_class(request):
+    if request.method == 'POST':
+
+        user = verify_token(request)
+        if not user:
+            return HttpResponse(status=403)
+
+        post_json = json.loads(request.body)
+        class_pk = post_json.get('classID')
+        if class_pk.startswith('"') and class_pk.endswith('"'):
+            class_pk = class_pk[1:-1]
+        try:
+            class_pk_int = int(class_pk)
+        except TypeError:
+            return HttpResponse(status=400)
+        try:
+            class_obj = Class.objects.get(pk=class_pk_int)
+            user.classes.remove(class_obj)
+            return HttpResponse(status=200)
+        except ObjectDoesNotExist:
+            return HttpResponse(status=404)
+
+
+@csrf_exempt
+def unfollow_class(request):
+    if request.method == 'POST':
+
+        user = verify_token(request)
+        if not user:
+            user = User.objects.get(pk=0)
+            # return HttpResponse(status=403)
+
+        post_json = json.loads(request.body)
+        class_pk = post_json.get('classID')
+        if class_pk.startswith('"') and class_pk.endswith('"'):
+            class_pk = class_pk[1:-1]
+        try:
+            class_pk_int = int(class_pk)
+        except TypeError:
+            return HttpResponse(status=400)
+        try:
+            class_obj = Class.objects.get(pk=class_pk_int)
+            user.classes.remove(class_obj)
+            return HttpResponse(status=200)
+        except ObjectDoesNotExist:
+            return HttpResponse(status=404)
+
+@csrf_exempt
 def get_schools(request):
     schools = School.objects.all()
     result = []
     for school in schools:
         result.append({'name': school.name, 'picKey': school.pic_key})
     return JsonResponse(result, safe=False)
+
 
 @csrf_exempt
 def search_classes(request):
