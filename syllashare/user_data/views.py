@@ -12,7 +12,12 @@ from django.http import JsonResponse
 import json
 import traceback
 import itertools
-import difflib
+import os
+import sys
+import re
+import datetime
+import ntpath
+import shutil
 
 
 @csrf_exempt
@@ -147,6 +152,7 @@ def unfollow_class(request):
         except ObjectDoesNotExist:
             return HttpResponse(status=404)
 
+
 @csrf_exempt
 def get_schools(request):
     schools = School.objects.all()
@@ -219,6 +225,186 @@ def get_class_schedule(request):
     else:
         return JsonResponse({}, status=404)
 
+
+@csrf_exempt
+def add_class(request):
+    pass
+
+@csrf_exempt
+def class_scan(request):
+    if request.method == 'POST':
+        post_json = json.loads(request.body)
+
+        # TODO: Make this actually work
+        s3_key = post_json.get('s3_key')
+        # TODO: download file to 'temp_pdf.pdf' in cwd
+
+        json_response = read_file('temp_pdf.pdf')
+        try:
+            os.remove('temp_pdf.pdf')
+            os.remove('temp_pdf.txt')
+        except FileNotFoundError:
+            pass
+        return JsonResponse(json_response)
+    else:
+        return JsonResponse({}, status=404)
+
+
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+
+def read_file(file_path):
+    file_name = path_leaf(file_path)
+    path = os.path.dirname(file_path)
+    print('File:', file_path)
+
+    test_path = os.path.join(path, 'test_text_files')
+    if not os.path.isdir(test_path):
+        os.mkdir(test_path)
+
+    text_file_path = os.path.join(test_path, file_name).replace('.pdf', '.txt')
+
+    cmd = "pdftotext -layout %s %s" % (file_path, text_file_path)
+    os.system(cmd)
+
+    with open(text_file_path) as f:
+        result = f.read()
+
+    if result:
+
+        first_name, last_name = find_professor(result)
+        print('Professor:', first_name, last_name)
+
+        class_number, class_title = find_class(result)
+        print('Class Number:', class_number)
+        print('Class Title:', class_title)
+
+        print('Date Objects:')
+        date_lists = find_dates(result)
+        for date_obj in date_lists:
+            print('Date:', date_obj['date'])
+            print('Event Type:', date_obj['event_type'])
+            print('Event Title:', date_obj['event_title'])
+            print()
+
+        json_response = {
+            'class_number': class_number,
+            'class_title': class_title,
+            'teacher': first_name + ' ' + last_name,
+            'events': date_lists
+        }
+        return json_response
+
+    else:
+        return {}
+
+
+def find_professor(result_string):
+    for line in result_string.split('\n'):
+        is_instructor_line = False
+        if line:
+            lower_line = line.lower()
+            lower_line = lower_line.replace(':', '')
+            lower_line = lower_line.replace('phd', '')
+            lower_line = lower_line.replace('ph.d', '')
+            if 'instructor' in lower_line:
+                lower_line = lower_line.replace('instructor', '')
+                is_instructor_line = True
+            if 'professor' in lower_line:
+                lower_line = lower_line.replace('professor', '')
+                is_instructor_line = True
+            if 'prof.' in lower_line:
+                first_prof_index = lower_line.find('prof.')
+                second_prof_index = lower_line.find('prof.', first_prof_index + 5)
+                if second_prof_index != -1:
+                    lower_line = lower_line[first_prof_index:second_prof_index]
+                lower_line = lower_line.replace('prof.', '')
+                is_instructor_line = True
+            if 'dr.' in lower_line:
+                lower_line = lower_line.replace('dr.', '')
+                is_instructor_line = True
+
+            if is_instructor_line:
+                name = lower_line.title().strip()
+                if ',' in name:
+                    if len(name.split()) == 1:
+                        last_name = name.replace(',', '').strip()
+                        first_name = ''
+                    else:
+                        last_name = name.replace(',', '').split()[0]
+                        first_name = name.split()[1]
+                else:
+                    if len(name.split()) == 1:
+                        last_name = name
+                        first_name = ''
+                    else:
+                        last_name = name.split()[-1]
+                        first_name = name.split()[0]
+                return first_name, last_name
+
+    return 'DNF', 'DNF'
+
+
+def find_class(result_string):
+    regex = "[A-z]{1,5} ?[0-9]{1,4}"
+
+    for line in result_string.split('\n'):
+        match = re.search(regex, line)
+        if match and 'fall' not in match.group(0).lower():
+            class_number_token = match.group(0)
+            class_title = line.replace(class_number_token, '').strip()
+            return class_number_token.replace(' ', ''), class_title
+    return 'Could Not Find Class Number', 'Could Not Find Class Title'
+
+
+def find_dates(result_string):
+    date_events = []
+    regex = "(\d\d/\d\d)|(\d/\d\d)|(\d\d/\d)"
+    for line in result_string.split('\n'):
+        if line:
+            match = re.search(regex, line)
+            if match:
+                date = match.group(0)
+                month, day = date.split('/')
+                month = int(month)
+                day = int(day)
+                if 1 <= month <= 12 and 1 <= day <= 31:
+                    if month < 10:
+                        month_str = '0' + str(month)
+                    else:
+                        month_str = str(month)
+
+                    if day < 10:
+                        day_str = '0' + str(day)
+                    else:
+                        day_str = str(day)
+
+                    date_line_index = line.find(date)
+                    event_title = line[date_line_index + len(date):].strip()
+                    event_type = get_event_type(event_title)
+                    date_events.append({
+                        'date': month_str + '/' + day_str + '/' + str(datetime.datetime.now().year),
+                        'event_title': event_title,
+                        'event_type': event_type,
+                    })
+
+    return date_events
+
+
+def get_event_type(activity):
+    lower_activity = activity.lower()
+    if 'homework' in lower_activity:
+        return 'Homework'
+    elif ' due' in lower_activity:
+        return 'Assignment'
+    elif 'midterm' in lower_activity:
+        return 'Midterm'
+    elif 'final' in lower_activity:
+        return 'Final'
+    else:
+        return 'Lecture'
 
 @csrf_exempt
 def search_users(request):
