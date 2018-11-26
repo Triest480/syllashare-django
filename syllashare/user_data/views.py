@@ -1,6 +1,3 @@
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
-
 from user_data.models import User, School, Class, SyllabusEvent
 from syllatokens.models import ServiceToken
 from syllatokens.utils import verify_token
@@ -13,11 +10,11 @@ import json
 import traceback
 import itertools
 import os
-import sys
 import re
 import datetime
 import ntpath
-import shutil
+import boto3
+import botocore
 
 
 @csrf_exempt
@@ -230,14 +227,20 @@ def get_class_schedule(request):
 def add_class(request):
     pass
 
+
 @csrf_exempt
 def class_scan(request):
     if request.method == 'POST':
         post_json = json.loads(request.body)
 
-        # TODO: Make this actually work
-        s3_key = post_json.get('s3_key')
-        # TODO: download file to 'temp_pdf.pdf' in cwd
+        s3_obj_key = post_json.get('s3_obj_key')
+        BUCKET_NAME = 'syllasharedata'
+
+        s3 = boto3.resource('s3')
+        try:
+            s3.Bucket(BUCKET_NAME).download_file(s3_obj_key, 'test_pdf.pdf')
+        except botocore.exceptions.ClientError:
+            return JsonResponse({}, status=404)
 
         json_response = read_file('temp_pdf.pdf')
         try:
