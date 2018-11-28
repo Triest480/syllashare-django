@@ -15,13 +15,15 @@ import datetime
 import ntpath
 import boto3
 import botocore
+from django.conf import settings
+import difflib
 
-
+#Unused
 @csrf_exempt
 def sup(request):
     return HttpResponse('Sup')
 
-
+#Used
 @csrf_exempt
 def modify_user(request):
     user = verify_token(request)
@@ -51,12 +53,15 @@ def modify_user(request):
         user.last_name = body_in['lastName']
     
     if "school" in body_in:
-        schools = School.objects.filter(name=body_in["school"]["name"])
-        if len(schools) != 1:
-            response = HttpResponse(json.dumps({'msg': 'School Not Found'}), content_type='application/json')
-            response.status_code = 404
-            return response
-        user.school = schools[0]
+        if body_in["school"] is not None:
+            schools = School.objects.filter(name=body_in["school"]["name"])
+            if len(schools) != 1:
+                response = HttpResponse(json.dumps({'msg': 'School Not Found'}), content_type='application/json')
+                response.status_code = 404
+                return response
+            user.school = schools[0]
+        else:
+            user.school = None
     try:
         user.save()
     except:
@@ -66,6 +71,7 @@ def modify_user(request):
     return HttpResponse(status=200)
 
 
+#Used
 @csrf_exempt
 def get_user(request):
     user = verify_token(request)
@@ -83,7 +89,7 @@ def get_user(request):
     providers = []
     for service_token in service_tokens:
         providers.append(service_token.provider)
-    school_dict = {}
+    school_dict = None
     if user.school:
         school_dict = {
             'name': user.school.name,
@@ -100,7 +106,7 @@ def get_user(request):
         }
     )
 
-
+#Unused
 @csrf_exempt
 def follow_class(request):
     if request.method == 'POST':
@@ -124,7 +130,7 @@ def follow_class(request):
         except ObjectDoesNotExist:
             return HttpResponse(status=404)
 
-
+#Unused
 @csrf_exempt
 def unfollow_class(request):
     if request.method == 'POST':
@@ -149,7 +155,7 @@ def unfollow_class(request):
         except ObjectDoesNotExist:
             return HttpResponse(status=404)
 
-
+#Used
 @csrf_exempt
 def get_schools(request):
     schools = School.objects.all()
@@ -159,6 +165,7 @@ def get_schools(request):
     return JsonResponse(result, safe=False)
 
 
+#Unused
 @csrf_exempt
 def search_classes(request):
     query_str = request.GET.get('query', '')
@@ -178,7 +185,7 @@ def search_classes(request):
         class_json_list.append(class_json)
     return JsonResponse(class_json_list, safe=False)
 
-
+#Unused
 @csrf_exempt
 def get_class_schedule(request):
     class_id = request.GET.get('classID', '')
@@ -222,30 +229,38 @@ def get_class_schedule(request):
     else:
         return JsonResponse({}, status=404)
 
-
 @csrf_exempt
 def add_class(request):
     pass
 
-
+#Used
 @csrf_exempt
 def class_scan(request):
     if request.method == 'POST':
         post_json = json.loads(request.body)
 
-        s3_obj_key = post_json.get('s3_obj_key')
+        s3_obj_key = post_json.get('objKey')
         BUCKET_NAME = 'syllasharedata'
-
-        s3 = boto3.resource('s3')
+    
+        s3 = boto3.resource(
+            's3',
+            aws_access_key_id=settings.AWS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY
+        )
+        #This will break on async calls
+        print("Downloading from s3")
         try:
-            s3.Bucket(BUCKET_NAME).download_file(s3_obj_key, 'test_pdf.pdf')
-        except botocore.exceptions.ClientError:
+            s3.Bucket(BUCKET_NAME).download_file(s3_obj_key, '/tmp/temp_pdf.pdf')
+        except Exception as e:
+            print("S3 download fail: ", e)
             return JsonResponse({}, status=404)
-
-        json_response = read_file('temp_pdf.pdf')
+            
+        print("S3 downloaded")
+        
+        json_response = read_file('/tmp/temp_pdf.pdf')
         try:
-            os.remove('temp_pdf.pdf')
-            os.remove('temp_pdf.txt')
+            os.remove('/tmp/temp_pdf.pdf')
+            os.remove('/tmp/temp_pdf.txt')
         except FileNotFoundError:
             pass
         return JsonResponse(json_response)
@@ -259,7 +274,9 @@ def path_leaf(path):
 
 
 def read_file(file_path):
+    print("In Read file")
     file_name = path_leaf(file_path)
+    print("FILE NAME: ", file_name)
     path = os.path.dirname(file_path)
     print('File:', file_path)
 
@@ -346,7 +363,6 @@ def find_professor(result_string):
                         last_name = name.split()[-1]
                         first_name = name.split()[0]
                 return first_name, last_name
-
     return 'DNF', 'DNF'
 
 
@@ -409,42 +425,51 @@ def get_event_type(activity):
     else:
         return 'Lecture'
 
+#Used
 @csrf_exempt
 def search_users(request):
-    query_str = request.GET.get('query', '')
-    if query_str.startswith('"') and query_str.endswith('"'):
-        query_str = query_str[1:-1]
-    query_str = query_str.lower()
-    if len(query_str) < 3:
-        return HttpResponse(status=400)
-
-    user_list = []
-    for user in User.objects.all():
-        if len(user_list) > 20:
-            break
-        else:
-            if query_str in user.username:
-                user_list.append({
-                    'id': user.id,
-                    'firstname': user.first_name,
-                    'lastname': user.last_name,
-                    'username': user.username,
-                    'email': user.email,
-                    'pickey': user.pic_key,
-                })
-    if len(user_list) < 20:
-        for user in User.objects.all():
-            if user.first_name and query_str in user.first_name or user.last_name and query_str in user.last_name:
-                if user not in user_list:
-                    user_list.append({
-                        'id': user.id,
-                        'firstname': user.first_name,
-                        'lastname': user.last_name,
-                        'username': user.username,
-                        'email': user.email,
-                        'picKey': user.pic_key,
-                    })
-    if len(user_list) > 20:
-        return JsonResponse(user_list[:20], safe=False)
+    print("Running searchUsers")
+    queryid = str(request.GET.get('query'))
+    queryid = queryid.replace('"', '')
+    users = []
+    p = User.objects.all()
+    
+    for i in p:
+        print("Loop in searchUsers")
+        if queryid.lower() in str(i.username):
+            users.append({
+                'id': i.id,
+                'firstname': i.first_name,
+                'lastname': i.last_name,
+                'username': i.username,
+                'email': i.email,
+                'pickey': i.pic_key
+            })
+        elif queryid.lower() in str(i.first_name):
+          users.append({
+                'id': i.id,
+                'firstname': i.first_name,
+                'lastname': i.last_name,
+                'username': i.username,
+                'email': i.email,
+                'pickey': i.pic_key
+            })
+        elif queryid.lower() in str(i.last_name):
+            users.append({
+                'id': i.id,
+                'firstname': i.first_name,
+                'lastname': i.last_name,
+                'username': i.username,
+                'email': i.email,
+                'pickey': i.pic_key
+            })
+    print("SearchUsers responding")
+    if not users:
+        return HttpResponse(status=404)
     else:
-        return JsonResponse(user_list, safe=False)
+        #Doesn't make sense to sort
+        return JsonResponse(sorted(users,
+                                     key=lambda x: difflib.SequenceMatcher(None,
+                                     x['username'],
+                                     queryid).ratio()),
+                                     safe=False)
