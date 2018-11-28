@@ -23,6 +23,11 @@ def sup(request):
 
 
 @csrf_exempt
+def ping(request):
+    return HttpResponse(status=200)
+
+
+@csrf_exempt
 def modify_user(request):
     user = verify_token(request)
     if not user:
